@@ -3,7 +3,7 @@ import * as d3 from "d3";
 
 import SVGImage from "./assets/401290.svg";
 
-const D3Image = () => {
+const Canvas = () => {
   useEffect(() => {
     const svg = d3.select("#my-svg").append("svg");
     svg
@@ -100,4 +100,4 @@ function mouseUp() {
   console.log("mouseUp");
 }
 
-export default D3Image;
+export default Canvas;
