@@ -15,3 +15,11 @@ canvas {
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+
+rect {
+  cursor: pointer;
+}
+.tick line {
+  stroke: #ccc;
+  pointer-events: none;
+}

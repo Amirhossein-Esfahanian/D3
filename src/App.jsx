@@ -1,6 +1,7 @@
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import "./App.css";
+// import Canvas from "./canvas";
 import Canvas from "./canvas";
 
 function App() {
