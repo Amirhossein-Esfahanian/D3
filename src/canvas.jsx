@@ -7,6 +7,10 @@ const Canvas = () => {
   let g = undefined;
   let z = undefined;
   let svg = undefined;
+  const zeroState = [
+    { x: null, y: null },
+    { x: null, y: null },
+  ];
   useEffect(() => {
     svg = d3.select("#my-svg").append("svg");
 
@@ -37,8 +41,11 @@ const Canvas = () => {
   const [w, setW] = useState(window.innerWidth);
   const [isZooming, setZoom] = useState(true);
   const [h, setH] = useState(window.innerHeight);
-  const [field, setField] = useState({ x: null, y: null, label: "" });
-
+  const [fields, setFields] = useState([]);
+  const [field, setField] = useState(zeroState);
+  //   useEffect(() => {
+  //     console.log(fields);
+  //   }, [fields]);
   const zoom_actions = () => {
     //   if (!isZooming) {
     //     return;
@@ -59,22 +66,48 @@ const Canvas = () => {
               .attr("width", "100%")
               .attr("height", "100%")
               .attr("fill", "transparent")
-              .on("mousedown", function () {
-                console.log(g);
+              .on("mouseup", function () {
                 var xy = d3.mouse(this);
                 g = d3.select("#my-svg");
                 var transform = d3.zoomTransform(g.node());
                 var xy1 = transform.invert(xy);
+                // click(xy, "end");
+                // const point = { ...field };
+                // point.end = { x: xy[0], y: xy[1] };
+                // setField(point);
+                const end = { x: xy[0], y: xy[1] };
+                let newField = [...field];
+                // newField.push(start);
+                console.log(field);
+                // newFields.push({ start, end, label: "test" });
+                // setFields(newFields);
+                // setField({ start, end, label: "test" });
+                // console.log(field);
+              })
+              .on("mousedown", function () {
+                var xy = d3.mouse(this);
+                g = d3.select("#my-svg");
+                var transform = d3.zoomTransform(g.node());
+                var xy1 = transform.invert(xy);
+                // click(xy, "start");
 
-                console.log(
-                  "Mouse:[",
-                  xy[0],
-                  xy[1],
-                  "] Zoomed:[",
-                  xy1[0],
-                  xy1[1],
-                  "]"
-                );
+                // const point = { ...field };
+                // point.start = { x: xy[0], y: xy[1] };
+                // setField(point);
+                const start = { x: xy[0], y: xy[1] };
+                let newField = [];
+                newField.push(start);
+                console.log(xy);
+                setField(newField);
+                // console.log(
+                //   "Mouse:[",
+                //   xy[0],
+                //   xy[1],
+                //   "] Zoomed:[",
+                //   xy1[0],
+                //   xy1[1],
+                //   "]"
+                // );
               })
               //   .style("display", isZooming ? "none" : "")
               .attr("id", "redBack");
@@ -95,7 +128,7 @@ const Canvas = () => {
             .attr("id", "form")
             .attr("xlink:href", SVGImage)
             .style("background-color", "red")
-            .on("click", click())
+
             .style("width", w + "px")
             .style("height", h + "px");
           // .on("mouseup", mouseUp)
@@ -144,8 +177,15 @@ const Canvas = () => {
   );
 };
 // Toggle children on click.
-function click(d) {
-  console.log("click");
+function click(point, type) {
+  //     const dot = {};
+  //   if (type === "start") {
+  //             point.append("start",point)
+  //   } else {
+  //     end = point;
+  //     console.log(start, end);
+  //   }
+  //   console.log(d);
 }
 
 function mouseDown(x) {
