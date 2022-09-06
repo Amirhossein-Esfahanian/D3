@@ -5,6 +5,7 @@ import SVGImage from "./assets/grid.svg";
 
 const Canvas = () => {
   let g = undefined;
+  let z = undefined;
   let svg = undefined;
   useEffect(() => {
     svg = d3.select("#my-svg").append("svg");
@@ -36,6 +37,7 @@ const Canvas = () => {
   const [w, setW] = useState(window.innerWidth);
   const [isZooming, setZoom] = useState(true);
   const [h, setH] = useState(window.innerHeight);
+  const [field, setField] = useState({ x: null, y: null, label: "" });
 
   const zoom_actions = () => {
     //   if (!isZooming) {
@@ -51,12 +53,29 @@ const Canvas = () => {
         onClick={() => {
           console.log("original", isZooming);
           if (isZooming) {
-            svg;
-            d3.select("#my-svg")
+            z = d3
+              .select("#my-svg")
               .append("rect")
               .attr("width", "100%")
               .attr("height", "100%")
-              .attr("fill", "red")
+              .attr("fill", "transparent")
+              .on("mousedown", function () {
+                console.log(g);
+                var xy = d3.mouse(this);
+                g = d3.select("#my-svg");
+                var transform = d3.zoomTransform(g.node());
+                var xy1 = transform.invert(xy);
+
+                console.log(
+                  "Mouse:[",
+                  xy[0],
+                  xy[1],
+                  "] Zoomed:[",
+                  xy1[0],
+                  xy1[1],
+                  "]"
+                );
+              })
               //   .style("display", isZooming ? "none" : "")
               .attr("id", "redBack");
 
@@ -65,7 +84,6 @@ const Canvas = () => {
             d3.select("#my-svg").select("#redBack").remove();
             setZoom(true);
           }
-          //   !isZooming ? setZoom(true) : setZoom(false);
         }}
       >
         {isZooming ? "Disable Zoom" : "Enable Zoom"}
@@ -74,29 +92,30 @@ const Canvas = () => {
         onClick={() => {
           g = svg
             .append("image")
+            .attr("id", "form")
             .attr("xlink:href", SVGImage)
             .style("background-color", "red")
             .on("click", click())
             .style("width", w + "px")
-            .style("height", h + "px")
-            .on("mouseup", mouseUp)
-            .on("click", click)
-            .on("mousedown", function () {
-              var xy = d3.mouse(this);
+            .style("height", h + "px");
+          // .on("mouseup", mouseUp)
+          // .on("click", click);
+          // .on("mousedown", function () {
+          //   var xy = d3.mouse(this);
 
-              var transform = d3.zoomTransform(g.node());
-              var xy1 = transform.invert(xy);
+          //   var transform = d3.zoomTransform(g.node());
+          //   var xy1 = transform.invert(xy);
 
-              console.log(
-                "Mouse:[",
-                xy[0],
-                xy[1],
-                "] Zoomed:[",
-                xy1[0],
-                xy1[1],
-                "]"
-              );
-            });
+          //   console.log(
+          //     "Mouse:[",
+          //     xy[0],
+          //     xy[1],
+          //     "] Zoomed:[",
+          //     xy1[0],
+          //     xy1[1],
+          //     "]"
+          //   );
+          // });
 
           var zoom_handler = d3.zoom().on("zoom", zoom_actions);
           zoom_handler(g);
