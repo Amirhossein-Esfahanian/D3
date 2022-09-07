@@ -58,7 +58,6 @@ const Canvas = () => {
       <h1>Start</h1>
       <button
         onClick={() => {
-          console.log("original", isZooming);
           if (isZooming) {
             z = d3
               .select("#my-svg")
@@ -66,53 +65,34 @@ const Canvas = () => {
               .attr("width", "100%")
               .attr("height", "100%")
               .attr("fill", "transparent")
-              .on("mouseup", function () {
-                var xy = d3.mouse(this);
-                g = d3.select("#my-svg");
-                var transform = d3.zoomTransform(g.node());
-                var xy1 = transform.invert(xy);
-                // click(xy, "end");
-                // const point = { ...field };
-                // point.end = { x: xy[0], y: xy[1] };
-                // setField(point);
-                const end = { x: xy[0], y: xy[1] };
-                let newField = [...field];
-                // newField.push(start);
-                console.log(field);
-                // newFields.push({ start, end, label: "test" });
-                // setFields(newFields);
-                // setField({ start, end, label: "test" });
-                // console.log(field);
-              })
+              // .style("background-color", "red")
+              // .style("opacity", "0.2")
               .on("mousedown", function () {
-                var xy = d3.mouse(this);
-                g = d3.select("#my-svg");
-                var transform = d3.zoomTransform(g.node());
-                var xy1 = transform.invert(xy);
-                // click(xy, "start");
+                var m = d3.mouse(this);
 
-                // const point = { ...field };
-                // point.start = { x: xy[0], y: xy[1] };
-                // setField(point);
-                const start = { x: xy[0], y: xy[1] };
-                let newField = [];
-                newField.push(start);
-                console.log(xy);
-                setField(newField);
-                // console.log(
-                //   "Mouse:[",
-                //   xy[0],
-                //   xy[1],
-                //   "] Zoomed:[",
-                //   xy1[0],
-                //   xy1[1],
-                //   "]"
-                // );
+                const rect = z
+                  .append("rect")
+                  .attr("x", m[0])
+                  .attr("y", m[1])
+                  .attr("height", 0)
+                  .attr("width", 0)
+                  .style("id", "select");
+                z.on("mousemove", mousemove);
               })
-              //   .style("display", isZooming ? "none" : "")
+              .on("mouseup", function mouseup() {
+                z.on("mousemove", null);
+              })
               .attr("id", "redBack");
 
             setZoom(false);
+
+            function mousemove(d) {
+              var m = d3.mouse(this);
+              var cross = d3.select("#select");
+              cross
+                .attr("width", Math.max(0, m[0] - +cross.attr("x")))
+                .attr("height", Math.max(0, m[1] - +cross.attr("y")));
+            }
           } else {
             d3.select("#my-svg").select("#redBack").remove();
             setZoom(true);

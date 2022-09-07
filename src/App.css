@@ -23,3 +23,13 @@ rect {
   stroke: #ccc;
   pointer-events: none;
 }
+
+.item {
+  background-color: blue;
+  opacity: 0.6;
+  stroke: blue;
+  stroke-opacity: 0.9;
+  stroke-width: 2;
+
+  /* border: 5px solid black dashed; */
+}
