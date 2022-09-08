@@ -8,8 +8,10 @@ export default function Canvas2() {
   const [isDrawing, setIsDrawing] = useState("up");
   let counter = 0;
 
-  var dragHandler = d3.drag().on("drag", function () {
-    d3.select(this).attr("x", d3.event.x).attr("y", d3.event.y);
+  var drag_handler = d3.drag().on("drag", function (d) {
+    d3.select(this)
+      .attr("cx", (d.x = d3.event.x))
+      .attr("cy", (d.y = d3.event.y));
   });
 
   function mousemove(d) {
@@ -29,7 +31,7 @@ export default function Canvas2() {
       <p>{isDrawing}</p>
       <button
         onClick={() => {
-          const svg = d3.select("#my-svg").append("svg");
+          const svg = d3.select("#my-svg");
 
           //add back svg
           svg
@@ -57,11 +59,15 @@ export default function Canvas2() {
             .on("mousedown", function () {
               var m = d3.mouse(this);
               const idSelector = `#select${counter}`;
+              const parentSelector = `#selectParent${counter}`;
               const classSelector = `.item${counter + 1}`;
-              //append field
-              const z = svg;
 
-              svg
+              //append field
+              const newSelect = svg
+                .append("svg")
+                .attr("id", "selectParent" + counter);
+
+              const select = newSelect
                 .append("rect")
                 .attr("x", m[0])
                 .attr("y", m[1])
@@ -73,6 +79,7 @@ export default function Canvas2() {
                 // .classed("item", "select")
                 .attr("id", "select" + counter)
                 .on("mousemove", mousemove)
+
                 .on("mousedown", function () {
                   const field = d3.select("#my-svg").select(idSelector);
                   //   field.on("mousemove", mousemove);
@@ -80,7 +87,7 @@ export default function Canvas2() {
                 .on("mouseup", function () {
                   var mu = d3.mouse(this);
 
-                  svg
+                  newSelect
                     .append("image")
                     .attr("xlink:href", closeSvg)
                     .style("width", 25 + "px")
@@ -96,7 +103,7 @@ export default function Canvas2() {
                       d3.selectAll(classSelector).remove();
                     });
 
-                  svg
+                  newSelect
                     .append("image")
                     .attr("xlink:href", checkSvg)
                     .style("background-color", "red")
@@ -107,30 +114,47 @@ export default function Canvas2() {
                       d3.select(idSelector).on("mouseup", null);
 
                       alert("try to save");
-                      d3.selectAll(classSelector).style("display", "none");
+                      d3.select(parentSelector).style("display", "none");
+                      // d3.selectAll(classSelector).style("display", "none");
                     })
                     .classed("item" + counter, "select")
 
                     .style("height", 25 + "px")
                     .attr("x", mu[0])
                     .attr("y", mu[1]);
-                  svg
+                  newSelect
                     .append("image")
                     .style("background-color", "red")
                     .attr("xlink:href", plusSvg)
                     .classed("item" + counter, "select")
-
+                    // .attr("cx", function (d) {
+                    //   return d.x;
+                    // })
+                    // .attr("cy", function (d) {
+                    //   return d.y;
+                    // })
                     .style("width", 25 + "px")
                     .style("height", 25 + "px")
                     .attr("x", m[0])
+                    .attr("id", "move")
                     .attr("y", m[1]);
 
+                  const itemToDrag = d3
+                    .select("#my-svg")
+                    .select(parentSelector);
+                  var drag_handler = d3.drag().on("drag", function (d) {
+                    console.log(itemToDrag.x);
+                    itemToDrag
+                      .attr("x", (itemToDrag.x = d3.event.x))
+                      .attr("y", (itemToDrag.y = d3.event.y));
+                  });
+
+                  drag_handler(select);
                   const field = d3.select("#my-svg").select(idSelector);
                   const parent = d3.select("#my-svg").select("#front");
                   field.on("mousemove", null);
                   parent.on("mousemove", null);
                 });
-              dragHandler(svg.selectAll("use"));
 
               const field = d3.select("#my-svg").select(idSelector);
               const parent = d3.select("#my-svg").select("#front");
