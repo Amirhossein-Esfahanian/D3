@@ -114,7 +114,7 @@ export default function Canvas2() {
                       d3.select(idSelector).on("mouseup", null);
 
                       alert("try to save");
-                      d3.select(parentSelector).style("display", "none");
+                      d3.select(classSelector).style("display", "none");
                       // d3.selectAll(classSelector).style("display", "none");
                     })
                     .classed("item" + counter, "select")
@@ -143,13 +143,13 @@ export default function Canvas2() {
                     .select("#my-svg")
                     .select(parentSelector);
                   var drag_handler = d3.drag().on("drag", function (d) {
-                    console.log(itemToDrag.x);
+                    // console.log(itemToDrag.x);
                     itemToDrag
                       .attr("x", (itemToDrag.x = d3.event.x))
                       .attr("y", (itemToDrag.y = d3.event.y));
                   });
 
-                  drag_handler(select);
+                  drag_handler(d3.select("#my-svg").select(parentSelector));
                   const field = d3.select("#my-svg").select(idSelector);
                   const parent = d3.select("#my-svg").select("#front");
                   field.on("mousemove", null);
