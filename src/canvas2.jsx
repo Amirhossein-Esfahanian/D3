@@ -8,12 +8,6 @@ export default function Canvas2() {
   const [isDrawing, setIsDrawing] = useState("up");
   let counter = 0;
 
-  var drag_handler = d3.drag().on("drag", function (d) {
-    d3.select(this)
-      .attr("cx", (d.x = d3.event.x))
-      .attr("cy", (d.y = d3.event.y));
-  });
-
   function mousemove(d) {
     console.log(counter);
     const idSelector = `#select${counter - 1}`;
@@ -122,31 +116,31 @@ export default function Canvas2() {
                     .style("height", 25 + "px")
                     .attr("x", mu[0])
                     .attr("y", mu[1]);
-                  newSelect
-                    .append("image")
-                    .style("background-color", "red")
-                    .attr("xlink:href", plusSvg)
-                    .classed("item" + counter, "select")
-                    // .attr("cx", function (d) {
-                    //   return d.x;
-                    // })
-                    // .attr("cy", function (d) {
-                    //   return d.y;
-                    // })
-                    .style("width", 25 + "px")
-                    .style("height", 25 + "px")
-                    .attr("x", m[0])
-                    .attr("id", "move")
-                    .attr("y", m[1]);
+                  // newSelect
+                  //   .append("image")
+                  //   .style("background-color", "red")
+                  //   .attr("xlink:href", plusSvg)
+                  //   .classed("item" + counter, "select")
+                  //   // .attr("cx", function (d) {
+                  //   //   return d.x;
+                  //   // })
+                  //   // .attr("cy", function (d) {
+                  //   //   return d.y;
+                  //   // })
+                  //   .style("width", 25 + "px")
+                  //   .style("height", 25 + "px")
+                  //   .attr("x", m[0])
+                  //   .attr("id", "move")
+                  //   .attr("y", m[1]);
 
-                  const itemToDrag = d3
-                    .select("#my-svg")
-                    .select(parentSelector);
                   var drag_handler = d3.drag().on("drag", function (d) {
-                    // console.log(itemToDrag.x);
+                    const itemToDrag = d3
+                      .select("#my-svg")
+                      .select(parentSelector);
+                    console.log(d3.event.x);
                     itemToDrag
-                      .attr("x", (itemToDrag.x = d3.event.x))
-                      .attr("y", (itemToDrag.y = d3.event.y));
+                      .attr("x", (itemToDrag.x = d3.event.x - 100))
+                      .attr("y", (itemToDrag.y = d3.event.y - 100));
                   });
 
                   drag_handler(d3.select("#my-svg").select(parentSelector));
