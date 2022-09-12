@@ -56,6 +56,9 @@ export default function Canvas2() {
             fieldToDrag.node().getBBox().height / 2)
         );
     } else {
+      //set class to change color
+      d3.select("#my-svg").selectAll("rect").classed("resizing", false);
+      fieldToDrag.classed("resizing", true);
       //move resize circle
       resizeHandle.attr("cx", m[0]).attr("cy", m[1]);
       // select text and set to center
@@ -111,6 +114,7 @@ export default function Canvas2() {
             //parent mouse down start drawing field
             .on("mousedown", function () {
               dragAction = "move";
+              d3.select("#my-svg").selectAll("rect").classed("resizing", false);
               var m = d3.mouse(this);
               const idSelector = `#select${counter}`;
               const parentSelector = `#selectParent${counter}`;
