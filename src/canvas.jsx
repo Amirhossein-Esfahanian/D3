@@ -20,20 +20,6 @@ const Canvas = () => {
       .attr("height", "100%")
       .on("click", click)
       .attr("fill", "white");
-
-    // svg
-    //   .append("rect")
-    //   .attr("width", "100%")
-    //   .attr("height", "100%")
-    //   .attr("fill", "red")
-    //   //   .style("display", isZooming ? "none" : "")
-
-    //   //   .attr("display", isZooming ? "none" : "")
-    //   .on("click", function () {
-    //     svg.remove(this);
-    //   });
-    //   .attr("width", 400)
-    //   .attr("height", 400)
   }, []);
 
   //   const [x, setX] = useState(50);
@@ -47,10 +33,6 @@ const Canvas = () => {
   //     console.log(fields);
   //   }, [fields]);
   const zoom_actions = () => {
-    //   if (!isZooming) {
-    //     return;
-    //   }
-
     g.attr("transform", d3.event.transform);
   };
   return (
@@ -74,6 +56,7 @@ const Canvas = () => {
                   .append("rect")
                   .attr("x", m[0])
                   .attr("y", m[1])
+                  .attr("fill", "red")
                   .attr("height", 0)
                   .attr("width", 0)
                   .style("id", "select");
@@ -83,8 +66,6 @@ const Canvas = () => {
                 z.on("mousemove", null);
               })
               .attr("id", "redBack");
-
-            setZoom(false);
 
             function mousemove(d) {
               var m = d3.mouse(this);
@@ -111,24 +92,6 @@ const Canvas = () => {
 
             .style("width", w + "px")
             .style("height", h + "px");
-          // .on("mouseup", mouseUp)
-          // .on("click", click);
-          // .on("mousedown", function () {
-          //   var xy = d3.mouse(this);
-
-          //   var transform = d3.zoomTransform(g.node());
-          //   var xy1 = transform.invert(xy);
-
-          //   console.log(
-          //     "Mouse:[",
-          //     xy[0],
-          //     xy[1],
-          //     "] Zoomed:[",
-          //     xy1[0],
-          //     xy1[1],
-          //     "]"
-          //   );
-          // });
 
           var zoom_handler = d3.zoom().on("zoom", zoom_actions);
           zoom_handler(g);
