@@ -26,9 +26,7 @@ export default function Canvas3() {
     .zoom()
     .scaleExtent([1 / 4, 8])
     .on("zoom", function () {
-      d3.select("#my-svg")
-        // .select("#form")
-        .attr("transform", d3.event.transform);
+      d3.select("#new-g").attr("transform", d3.event.transform);
     });
 
   function dragged(d) {
@@ -64,15 +62,15 @@ export default function Canvas3() {
       </button>
       <button
         onClick={() => {
-          svg = d3.select("#my-svg").append("svg");
+          svg = d3.select("#my-svg").append("g").attr("id", "root-g");
           svg
             .append("rect")
             .attr("width", "100%")
             .attr("height", "100%")
-            .attr("id", "root")
-            .attr("fill", "white");
 
-          form = svg
+            .attr("fill", "white");
+          const newG = svg.append("g").attr("id", "new-g");
+          form = newG
             .append("image")
             .attr("xlink:href", svgForm)
             .attr("id", "form")
@@ -82,7 +80,7 @@ export default function Canvas3() {
               console.log(d3.mouse(this));
             });
 
-          const field = svg
+          const field = newG
             .append("rect")
             .attr("id", "field")
             .attr("x", 100)
