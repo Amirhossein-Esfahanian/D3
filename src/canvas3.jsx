@@ -12,11 +12,25 @@ export default function Canvas3() {
     { x: null, y: null },
   ];
 
-  useEffect(() => {}, []);
-
   const [w, setW] = useState(window.innerWidth);
   const [isZooming, setZoom] = useState(true);
   const [h, setH] = useState(window.innerHeight);
+
+  function mousemove(d) {
+    let idSelector = null;
+    if (target === null) {
+      idSelector = `#select${counter - 1}`;
+    } else {
+      idSelector = `#select${target}`;
+    }
+    const select = d3.select("#my-svg").select(idSelector);
+
+    var m = d3.mouse(this);
+
+    select
+      .attr("width", Math.max(0, m[0] - +select.node().getBBox().x))
+      .attr("height", Math.max(0, m[1] - +select.node().getBBox().y));
+  }
 
   const zoom_actions = () => {
     form.attr("transform", d3.event.transform);
@@ -26,17 +40,9 @@ export default function Canvas3() {
     .zoom()
     .scaleExtent([1 / 4, 8])
     .on("zoom", function () {
-      d3.select("#new-g").attr("transform", d3.event.transform);
+      d3.select("#elements-g").attr("transform", d3.event.transform);
     });
 
-  function dragged(d) {
-    d3.select(this)
-      .attr("x", (d.x = d3.event.x))
-      .attr("y", (d.y = d3.event.y));
-  }
-  function center() {
-    return d3.zoomIdentity.scale(0.5);
-  }
   return (
     <div>
       Canvas3
@@ -69,7 +75,7 @@ export default function Canvas3() {
             .attr("height", "100%")
 
             .attr("fill", "white");
-          const newG = svg.append("g").attr("id", "new-g");
+          const newG = svg.append("g").attr("id", "elements-g");
           form = newG
             .append("image")
             .attr("xlink:href", svgForm)
@@ -93,17 +99,6 @@ export default function Canvas3() {
             .attr("width", 100)
             .attr("height", 100);
 
-          // field
-          // .call(
-          //   d3.drag().on("drag", function (d) {
-          //     d3.select(this).attr("x", d3.event.x).attr("y", d3.event.y);
-          //   })
-          // );
-          var zoom_handler = d3
-            .zoom()
-            .scaleExtent([1 / 2, 8])
-            .on("zoom", zoom_actions);
-          // zoom_handler(form);
           svg.call(zoom);
         }}
       >
