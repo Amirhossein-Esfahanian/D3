@@ -235,11 +235,10 @@ export default function Canvas2() {
                   //   .attr("id", "move")
                   //   .attr("y", m[1]);
 
-                  var drag_handler = d3
-                    .drag()
-                    .on("drag", () =>
-                      drag(parentSelector, idSelector, resizeSelector)
-                    );
+                  var drag_handler = d3.drag().on("drag", () => {
+                    console.log("dragggging");
+                    drag(parentSelector, idSelector, resizeSelector);
+                  });
                   var resize_handler = d3.drag().on("drag", function (d) {
                     console.log(resizeSelector);
                     // const itemToDrag = d3
