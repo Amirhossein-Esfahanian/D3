@@ -90,3 +90,6 @@ circle:hover {
   fill: red;
   opacity: 0.1;
 }
+#form {
+  stroke: red;
+}

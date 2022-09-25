@@ -66,14 +66,17 @@ export default function Canvas3() {
       .select(parentSelector)
       .select(idSelector);
 
-    //select mouse position based on form object
-    var m = d3.mouse(
-      d3.select("#my-svg").select("#root-g").select("#form").node()
-    );
+    //check if drawing started or not
+    if (select.size() !== 0) {
+      //select mouse position based on form object
+      var m = d3.mouse(
+        d3.select("#my-svg").select("#root-g").select("#form").node()
+      );
 
-    select
-      .attr("width", Math.max(0, m[0] - +select.node().getBBox().x))
-      .attr("height", Math.max(0, m[1] - +select.node().getBBox().y));
+      select
+        .attr("width", Math.max(0, m[0] - +select.node().getBBox().x))
+        .attr("height", Math.max(0, m[1] - +select.node().getBBox().y));
+    }
   }
   // function drag(parentSelector, idSelector) {
   //   console.log(parentSelector);
@@ -82,9 +85,11 @@ export default function Canvas3() {
   function drag(parentSelector, idSelector, resizeSelector) {
     const itemToDrag = d3.select("#my-svg").select(parentSelector);
     // const front = d3.select("#my-svg").select("#root-g").select("#form").node();
-    const front = d3.select("#my-svg").select("#elements-g").node();
+
     //get mouse position based on background
-    var m = d3.mouse(front);
+    var m = d3.mouse(
+      d3.select("#my-svg").select("#root-g").select("#form").node()
+    );
 
     // get resize circle
     const resizeHandle = d3
@@ -112,7 +117,7 @@ export default function Canvas3() {
         );
     } else {
       //set class to change color
-      d3.select("#my-svg").selectAll("rect").classed("resizing", false);
+      // d3.select("#my-svg").selectAll("rect").classed("resizing", false);
       fieldToDrag.classed("resizing", true);
       //move resize circle
       resizeHandle.attr("cx", m[0]).attr("cy", m[1]);
@@ -148,7 +153,7 @@ export default function Canvas3() {
     <>
       Canvas3
       <button
-        disabled={!isZooming}
+        // disabled={!isZooming}
         onClick={function () {
           if (isZooming) {
             if (d3.select("#my-svg").select("#zoomCover").size() !== 0) {
@@ -174,7 +179,7 @@ export default function Canvas3() {
                   const idSelector = `#select${counter - 1}`;
                   const parentSelector = `#selectParent${counter - 1}`;
                   const classSelector = `.item${counter}`;
-                  const resizeSelector = `#resizeHandle${counter + 1}`;
+                  const resizeSelector = `#resizeHandle${counter}`;
 
                   const board = d3
                     .select("#my-svg")
@@ -238,7 +243,7 @@ export default function Canvas3() {
                       d3.select(parentSelector)
 
                         .append("circle")
-                        .attr("r", 5)
+                        .attr("r", 10)
                         .attr("id", "resizeHandle" + counter)
                         .classed("item" + counter, "select")
                         .attr("cx", boardProp.x + boardProp.width)
@@ -247,17 +252,28 @@ export default function Canvas3() {
                         .call(
                           d3
                             .drag()
-
-                            .on("drag", () =>
-                              drag(parentSelector, idSelector, resizeSelector)
-                            )
+                            .on("start", function () {
+                              d3.select(this).classed("resizing", true);
+                            })
+                            .on("end", function () {
+                              dragAction = "move";
+                              d3.select("#my-svg")
+                                .selectAll("circle")
+                                .classed("resizing", false)
+                                .classed("moving", false);
+                              d3.select("#my-svg")
+                                .selectAll("rect")
+                                .classed("resizing", false)
+                                .classed("moving", false);
+                            })
+                            .on("drag", () => {
+                              drag(parentSelector, idSelector, resizeSelector);
+                            })
                         )
                         .on("mouseleave", function () {
-                          console.log("moveeeeeeeee");
                           // dragAction = "move";
                         })
                         .on("mouseover", function () {
-                          console.log("resizeeeeee");
                           dragAction = "resize";
                         });
                     })
@@ -271,10 +287,8 @@ export default function Canvas3() {
                 //parent mouse down start drawing field
                 .on("mousedown", function () {
                   dragAction = "move";
-                  d3.select("#my-svg")
-                    .select("#root-g")
-                    .selectAll("rect")
-                    .classed("resizing", false);
+                  d3.select("#my-svg").select("#root-g").selectAll("rect");
+
                   var m = d3.mouse(
                     d3
                       .select("#my-svg")
@@ -479,7 +493,7 @@ export default function Canvas3() {
           }
         }}
       >
-        {isZooming ? "Add New Field" : "Draw Mode"}
+        {isZooming ? "Add New Field" : "Cancel"}
       </button>
       <button
         onClick={() => {
@@ -497,8 +511,8 @@ export default function Canvas3() {
             .attr("xlink:href", svgForm)
             .attr("id", "form")
 
-            .style("width", w + "px")
-            .style("height", h + "px")
+            // .style("width", w + "px")
+            // .style("height", h + "px")
 
             .on("click", function () {
               dragAction = "move";
