@@ -17,11 +17,48 @@ export default function Canvas3() {
   let dragAction = "move";
   let target = null;
 
+  // const [preFields, setPreFields] = useState([]);
+  const [item, addItem] = useState();
   const [fields, setFields] = useState([]);
   const [isZooming, setZoom] = useState(true);
   const [w, setW] = useState(window.innerWidth);
   const [h, setH] = useState(window.innerHeight);
-  async function saveField({ x, y, width, height }) {
+
+  //update fields list based on changes
+  useEffect(() => {
+    //not trigger on start
+    if (!item) {
+      return;
+    }
+
+    //add without check if theres no field
+    const newItems = [...fields];
+    if (newItems.length === 0) {
+      setFields((current) => [...current, item]);
+      return;
+    }
+    // check for duplicates
+    const duplicate = newItems.filter((x) => x.id === item.id);
+    if (duplicate.length === 0) {
+      setFields((current) => [...current, item]);
+    } else {
+      //if its editing :
+      const newFields = [...newItems];
+      let editItem = newFields.find((x) => x.id === item.id);
+      editItem.width = item.width;
+      editItem.height = item.height;
+      if (item.x) {
+        editItem.x = item.x;
+        editItem.y = item.y;
+      }
+
+      setFields(newFields);
+    }
+  }, [item]);
+
+  async function saveField(item) {
+    const { id } = item;
+    const { x, y, width, height } = item.getBBox();
     const { value: title } = await Swal.fire({
       text: "Enter Field Title",
       input: "text",
@@ -35,11 +72,9 @@ export default function Canvas3() {
       },
     });
     if (title) {
-      const field = { title, x, y, width, height };
-      // const newFields = [...fields];
-      // newFields.push(field);
-      // console.log(newFields);
-      setFields((current) => [...current, field]);
+      const field = { id, title, x, y, width, height };
+      addItem(field);
+      // setFields((current) => [...current, field]);
 
       Swal.fire({
         // position: 'top-end',
@@ -78,10 +113,7 @@ export default function Canvas3() {
         .attr("height", Math.max(0, m[1] - +select.node().getBBox().y));
     }
   }
-  // function drag(parentSelector, idSelector) {
-  //   console.log(parentSelector);
-  //   console.log(idSelector);
-  // }
+
   function drag(parentSelector, idSelector, resizeSelector) {
     const itemToDrag = d3.select("#my-svg").select(parentSelector);
     // const front = d3.select("#my-svg").select("#root-g").select("#form").node();
@@ -116,6 +148,7 @@ export default function Canvas3() {
             fieldToDrag.node().getBBox().height / 2)
         );
     } else {
+      m = d3.mouse(d3.select("#my-svg").select(parentSelector).node());
       //set class to change color
       // d3.select("#my-svg").selectAll("rect").classed("resizing", false);
       fieldToDrag.classed("resizing", true);
@@ -141,6 +174,35 @@ export default function Canvas3() {
         fieldToDrag.attr("width", x - fx).attr("height", y - fy);
       }
     }
+    // console.log("this item", fieldToDrag.node().id);
+
+    // console.log(editingField);
+  }
+
+  function getProperty(parentSelector, idSelector) {
+    const deltaX = d3.select("#my-svg").select(parentSelector).attr("x");
+    const deltaY = d3.select("#my-svg").select(parentSelector).attr("y");
+    // const parent = d3.select("#my-svg").select(parentSelector).node();
+    const field = d3.select("#my-svg").select(idSelector).node();
+
+    const x = parseInt(field.getBBox().x) + parseInt(deltaX);
+    const y = parseInt(field.getBBox().y) + parseInt(deltaY);
+
+    const newField = {
+      id: field.id,
+      title: "",
+      x,
+      y,
+      width: field.getBBox().width,
+      height: field.getBBox().height,
+    };
+
+    addItem(newField);
+
+    // setFields((current) => [...current, newField]);
+
+    // console.log(parent);
+    // console.log(field);
   }
   var zoom = d3
     .zoom()
@@ -151,424 +213,282 @@ export default function Canvas3() {
 
   return (
     <>
-      Canvas3
-      <button
-        // disabled={!isZooming}
-        onClick={function () {
-          if (isZooming) {
-            if (d3.select("#my-svg").select("#zoomCover").size() !== 0) {
-              console.log("display true");
-              d3.select("#my-svg").select("#zoomCover").classed("hide", false);
-              setZoom(false);
+      <div>
+        <button
+          className="btn btn-warning m-2"
+          onClick={() => {
+            svg = d3.select("#my-svg").append("g").attr("id", "root-g");
+            svg
+              .append("rect")
+              .attr("width", "100%")
+              .attr("height", "100%")
 
-              // .style("display", "true");
-            } else {
-              console.log("create new");
+              .attr("fill", "white");
+            const newG = svg.append("g").attr("id", "form-g");
 
-              z = d3
-                .select("#my-svg")
-                .append("rect")
-                .attr("width", "100%")
-                .attr("height", "100%")
-                .attr("fill", "transparent")
-                .attr("id", "zoomCover")
-                .on("mousemove", mousemove)
-                .on("mouseup", function () {
-                  const parent = d3.select("#my-svg").select("#zoomCover");
-                  parent.on("mousemove", null);
-                  const idSelector = `#select${counter - 1}`;
-                  const parentSelector = `#selectParent${counter - 1}`;
-                  const classSelector = `.item${counter}`;
-                  const resizeSelector = `#resizeHandle${counter}`;
+            form = newG
+              .append("image")
+              .attr("xlink:href", svgForm)
+              .attr("id", "form")
 
-                  const board = d3
-                    .select("#my-svg")
-                    .select("#root-g")
-                    .select("#form-g")
-                    .select("#elements-g")
-                    .select(parentSelector);
-                  const boardProp = board.node().getBBox();
-                  //add clear btn to the field
-                  const del = board
-                    .append("image")
-                    .attr("xlink:href", closeSvg)
-                    .style("width", 25 + "px")
-                    .style("height", 25 + "px")
-                    .classed("item" + counter, "select")
+              // .style("width", w + "px")
+              // .style("height", h + "px")
 
-                    .attr("x", boardProp.x + boardProp.width)
-                    .attr("y", boardProp.y)
-                    .on("click", function () {
-                      //id and class number is not same so have to select separately
+              .on("click", function () {
+                dragAction = "move";
+              });
+            elements = newG.append("g").attr("id", "elements-g");
 
-                      d3.select(idSelector).remove();
-                      d3.selectAll(classSelector).remove();
-                    });
+            svg.call(zoom);
+          }}
+        >
+          Load Image
+        </button>
+        <button
+          className="btn btn-success m-2"
+          // disabled={!isZooming}
+          onClick={function () {
+            if (isZooming) {
+              if (d3.select("#my-svg").select("#zoomCover").size() !== 0) {
+                console.log("display true");
+                d3.select("#my-svg")
+                  .select("#zoomCover")
+                  .classed("hide", false);
+                setZoom(false);
 
-                  //exit draw mode
-                  d3.select("#my-svg")
-                    .select("#zoomCover")
-                    .classed("hide", true);
-                  setZoom(true);
-                  //add save btn to the field
-                  board
-                    .append("image")
-                    .attr("xlink:href", checkSvg)
-                    .style("width", 25 + "px")
-                    .on("click", function () {
-                      // z.on("mousedown", null);
-                      // z.on("mouseup", null);
-                      const title = saveField(
-                        d3.select(idSelector).node().getBBox()
-                      ).then((title) => {
-                        d3.select(parentSelector)
-                          .append("text")
-                          .style("fill", "black")
-                          .style("font-size", "14px")
-                          .attr("dy", ".35em")
-                          .attr("x", boardProp.x + 3)
-                          //set text center vertically
-                          .attr("y", boardProp.y + boardProp.height / 2)
-                          .text(title)
-                          .style("style", "label");
-                      });
-                      d3.select(idSelector).classed("item", "select");
-                      d3.selectAll(classSelector).remove();
+                // .style("display", "true");
+              } else {
+                console.log("create new");
 
-                      // // const parent = d3.select(parentSelector);
-                      // // const parentPosition = parent.node().getBBox();
+                z = d3
+                  .select("#my-svg")
+                  .append("rect")
+                  .attr("width", "100%")
+                  .attr("height", "100%")
+                  .attr("fill", "transparent")
+                  .attr("id", "zoomCover")
+                  .on("mousemove", mousemove)
+                  .on("mouseup", function () {
+                    const parent = d3.select("#my-svg").select("#zoomCover");
+                    parent.on("mousemove", null);
+                    const idSelector = `#select${counter - 1}`;
+                    const parentSelector = `#selectParent${counter - 1}`;
+                    const classSelector = `.item${counter}`;
+                    const resizeSelector = `#resizeHandle${counter}`;
 
-                      // //add resize handler
-
-                      d3.select(parentSelector)
-
-                        .append("circle")
-                        .attr("r", 10)
-                        .attr("id", "resizeHandle" + counter)
-                        .classed("item" + counter, "select")
-                        .attr("cx", boardProp.x + boardProp.width)
-                        .attr("cy", boardProp.y + boardProp.height)
-                        // //call drag
-                        .call(
-                          d3
-                            .drag()
-                            .on("start", function () {
-                              d3.select(this).classed("resizing", true);
-                            })
-                            .on("end", function () {
-                              dragAction = "move";
-                              d3.select("#my-svg")
-                                .selectAll("circle")
-                                .classed("resizing", false)
-                                .classed("moving", false);
-                              d3.select("#my-svg")
-                                .selectAll("rect")
-                                .classed("resizing", false)
-                                .classed("moving", false);
-                            })
-                            .on("drag", () => {
-                              drag(parentSelector, idSelector, resizeSelector);
-                            })
-                        )
-                        .on("mouseleave", function () {
-                          // dragAction = "move";
-                        })
-                        .on("mouseover", function () {
-                          dragAction = "resize";
-                        });
-                    })
-                    .classed("item" + counter, "select")
-                    .style("height", 25 + "px")
-                    .attr("x", boardProp.x + boardProp.width)
-                    .attr("y", boardProp.y + boardProp.height);
-
-                  // counter++;
-                })
-                //parent mouse down start drawing field
-                .on("mousedown", function () {
-                  dragAction = "move";
-                  d3.select("#my-svg").select("#root-g").selectAll("rect");
-
-                  var m = d3.mouse(
-                    d3
+                    const board = d3
                       .select("#my-svg")
                       .select("#root-g")
-                      .select("#form")
-                      .node()
-                  );
-                  // var m = d3.mouse(this);
+                      .select("#form-g")
+                      .select("#elements-g")
+                      .select(parentSelector);
+                    const boardProp = board.node().getBBox();
+                    //add clear btn to the field
+                    const del = board
+                      .append("image")
+                      .attr("xlink:href", closeSvg)
+                      .style("width", 25 + "px")
+                      .style("height", 25 + "px")
+                      .classed("item" + counter, "select")
 
-                  const idSelector = `#select${counter}`;
-                  const parentSelector = `#selectParent${counter}`;
-                  const classSelector = `.item${counter + 1}`;
-                  const resizeSelector = `#resizeHandle${counter + 1}`;
+                      .attr("x", boardProp.x + boardProp.width)
+                      .attr("y", boardProp.y)
+                      .on("click", function () {
+                        //id and class number is not same so have to select separately
 
-                  //append field
-                  const newField = elements
-                    .append("svg")
+                        d3.select(idSelector).remove();
+                        d3.selectAll(classSelector).remove();
+                      });
 
-                    // .call(
-                    //   d3
-                    //     .drag()
-                    //     .on("drag", () =>
-                    //       drag(parentSelector, idSelector, resizeSelector)
-                    //     )
-                    // )
-                    // .call(
-                    //   d3.drag().on("drag",
+                    //exit draw mode
+                    d3.select("#my-svg")
+                      .select("#zoomCover")
+                      .classed("hide", true);
+                    setZoom(true);
+                    //add save btn to the field
+                    board
+                      .append("image")
+                      .attr("xlink:href", checkSvg)
+                      .style("width", 25 + "px")
+                      .on("click", function () {
+                        const title = saveField(
+                          d3.select(idSelector).node()
+                        ).then((title) => {
+                          d3.select(parentSelector)
+                            .append("text")
+                            .style("fill", "black")
+                            .style("font-size", "14px")
+                            .attr("dy", ".35em")
+                            .attr("x", boardProp.x + 3)
 
-                    //   function (d) {
-                    //     // const fieldToDrag = d3.select("#my-svg").select(idSelector);
-                    //     // const parentSelector = `#selectParent${this.id
-                    //     //   .match(/\d/g)
-                    //     //   .join("")}`;
-                    //     var m = d3.mouse(this);
-
-                    //     d3.select(this).attr("x", m[0]).attr("y", m[1]);
-                    //   })
-                    // )
-                    // .call(
-                    //   d3.drag().on("drag", function (d) {
-                    //     d3.select(this)
-                    //       .attr("x", d3.event.x)
-                    //       .attr("y", d3.event.y);
-                    //   })
-                    // )
-                    .attr("id", "selectParent" + counter);
-
-                  newField
-                    .append("rect")
-                    .attr("x", m[0])
-                    .attr("y", m[1])
-                    .attr("height", 0)
-                    .attr("width", 0)
-                    .attr("fill", "green")
-                    .attr("border", 1)
-                    .attr("href", "#pointer")
-
-                    //call drag
-                    .call(
-                      d3
-                        .drag()
-                        .on("start", function () {
-                          d3.select(this).classed("moving", true);
-                        })
-                        .on("end", function () {
-                          d3.select("#my-svg")
-                            .selectAll("rect")
-                            .classed("resizing", false)
-                            .classed("moving", false);
-                        })
-                        .on("drag", () =>
-                          drag(parentSelector, idSelector, resizeSelector)
-                        )
-                    )
-                    // .classed("item", "select")
-                    .attr("id", "select" + counter)
-                    // .on("mousemove", mousemove)
-
-                    .on("mousedown", function () {
-                      const field = d3.select("#my-svg").select(idSelector);
-
-                      //   field.on("mousemove", mousemove);
-                    })
-                    .on("mouseup", function () {
-                      var mu = d3.mouse(this);
-
-                      newField
-                        .append("image")
-                        .attr("xlink:href", closeSvg)
-                        .style("width", 25 + "px")
-                        .style("height", 25 + "px")
-                        .classed("item" + counter, "select")
-
-                        .attr("x", mu[0])
-                        .attr("y", m[1])
-                        .on("click", function () {
-                          //id and class number is not same so have to select separately
-                          d3.select(idSelector).remove();
-                          d3.selectAll(classSelector).remove();
+                            //set text center vertically
+                            .attr("y", boardProp.y + boardProp.height / 2)
+                            .text(title)
+                            .style("style", "label");
                         });
+                        d3.select(idSelector).classed("item", "select");
+                        d3.selectAll(classSelector).remove();
 
-                      newField
-                        .append("image")
-                        .attr("xlink:href", checkSvg)
-                        .style("width", 25 + "px")
-                        .on("click", function () {
-                          console.log("item", d3.select(idSelector));
-                          // d3.select(idSelector).classed("item", "select");
-                          // d3.select(idSelector).on("mousedown", null);
-                          // d3.select(idSelector).on("mouseup", null);
-                          // alert("try to save");
-                          // d3.selectAll(classSelector).style("display", "none");
-                          // const parent = d3.select(parentSelector);
-                          // const parentPosition = parent.node().getBBox();
-                          // parent
-                          //   .append("text")
-                          //   .style("fill", "black")
-                          //   .style("font-size", "14px")
-                          //   .attr("dy", ".35em")
-                          //   .attr("x", parentPosition.x + 3)
-                          //   //set text center vertically
-                          //   .attr(
-                          //     "y",
-                          //     parentPosition.y + parentPosition.height / 2
-                          //   )
-                          //   .style("style", "label")
-                          //   .text("Helllo");
+                        //add resize handler
 
-                          // newSelect
+                        d3.select(parentSelector)
 
-                          //   .append("circle")
-                          //   .attr("r", 5)
-                          //   .attr("id", "resizeHandle" + counter)
-                          //   .classed("item" + counter, "select")
-                          //   .attr("cx", mu[0])
-                          //   .attr("cy", mu[1])
+                          .append("circle")
+                          .attr("r", 5)
+                          .attr("id", "resizeHandle" + counter)
+                          .classed("item" + counter, "select")
+                          .attr("cx", boardProp.x + boardProp.width)
+                          .attr("cy", boardProp.y + boardProp.height)
+                          // //call drag
+                          .call(
+                            d3
+                              .drag()
+                              .on("start", function () {
+                                dragAction = "resize";
+                                d3.select(this).classed("resizing", true);
+                              })
+                              .on("end", function () {
+                                // console.log(this.id.match(/\d/g).join("") - 1);
+                                getProperty(parentSelector, idSelector);
 
-                          //   .on("mouseover", function () {
-                          //     dragAction = "resize";
-                          //   })
-                          //   .on("mouseleave", function () {});
-                        })
-                        .classed("item" + counter, "select")
+                                // need to get rect id and set properties in state
+                                dragAction = "move";
+                                d3.select("#my-svg")
+                                  .selectAll("circle")
+                                  .classed("resizing", false)
+                                  .classed("moving", false);
+                                d3.select("#my-svg")
+                                  .selectAll("rect")
+                                  .classed("resizing", false)
+                                  .classed("moving", false);
+                              })
+                              .on("drag", () => {
+                                drag(
+                                  parentSelector,
+                                  idSelector,
+                                  resizeSelector
+                                );
+                              })
+                          );
+                      })
+                      .classed("item" + counter, "select")
+                      .style("height", 25 + "px")
+                      .attr("x", boardProp.x + boardProp.width)
+                      .attr("y", boardProp.y + boardProp.height);
 
-                        .style("height", 25 + "px")
-                        .attr("x", mu[0])
-                        .attr("y", mu[1]);
+                    // counter++;
+                  })
+                  //parent mouse down start drawing field
+                  .on("mousedown", function () {
+                    dragAction = "move";
+                    d3.select("#my-svg").select("#root-g").selectAll("rect");
 
-                      // var drag_handler = d3.drag().on("drag", () => {
-                      //   drag(parentSelector, idSelector, resizeSelector);
-                      // });
-                      // // .on("start", function () {
-                      // //   alert("dddd");
-                      // // });
-
-                      // drag_handler(
-                      //   d3
-                      //     .select("#my-svg")
-
-                      //     .select(parentSelector)
-                      // );
-                      const field = d3
+                    var m = d3.mouse(
+                      d3
                         .select("#my-svg")
                         .select("#root-g")
-                        .select("#form-g")
-                        .select("#elements-g")
-                        .select(idSelector);
-                      const parent = d3.select("#my-svg").select("#zoomCover");
-                      // const field = d3.select("#my-svg").select(idSelector);
-                      // const parent = d3.select("#my-svg").select("#front");
-                      d3.select("#my-svg")
-                        .select("#zoomCover")
-                        .classed("hide", true);
-                      // .style("display", "none");
+                        .select("#form")
+                        .node()
+                    );
+                    // var m = d3.mouse(this);
 
-                      // d3.select("#my-svg").select("#zoomCover").remove();
-                      field.on("mousemove", null);
-                      parent.on("mousemove", null);
-                      setZoom(true);
-                    });
+                    const idSelector = `#select${counter}`;
+                    const parentSelector = `#selectParent${counter}`;
+                    const classSelector = `.item${counter + 1}`;
+                    const resizeSelector = `#resizeHandle${counter + 1}`;
 
-                  const field = d3
-                    .select("#my-svg")
-                    .select("#root-g")
-                    .select("#form-g")
-                    .select("#elements-g")
-                    .select(idSelector);
-                  const board = d3.select("#my-svg").select("#zoomCover");
-                  // const field = d3.select("#my-svg").select(idSelector);
-                  // const parent = d3.select("#my-svg").select("#front");
-                  board.on("mousemove", mousemove);
-                  // field.on("mousemove", mousemove);
-                  // alert("done");
+                    //append field
+                    const newField = elements
+                      .append("svg")
 
-                  counter++;
-                });
-              setZoom(false);
-            }
-          } else {
-            d3.select("#my-svg").select("#zoomCover").classed("hide", true);
-            setZoom(true);
-          }
-        }}
-      >
-        {isZooming ? "Add New Field" : "Cancel"}
-      </button>
-      <button
-        onClick={() => {
-          svg = d3.select("#my-svg").append("g").attr("id", "root-g");
-          svg
-            .append("rect")
-            .attr("width", "100%")
-            .attr("height", "100%")
+                      .attr("id", "selectParent" + counter);
 
-            .attr("fill", "white");
-          const newG = svg.append("g").attr("id", "form-g");
+                    newField
+                      .append("rect")
+                      .attr("x", m[0])
+                      .attr("y", m[1])
+                      .attr("height", 0)
+                      .attr("width", 0)
+                      .attr("fill", "green")
+                      .attr("border", 1)
+                      .attr("href", "#pointer")
 
-          form = newG
-            .append("image")
-            .attr("xlink:href", svgForm)
-            .attr("id", "form")
+                      //call drag
+                      .call(
+                        d3
+                          .drag()
+                          .on("start", function () {
+                            d3.select(this).classed("moving", true);
+                          })
+                          .on("end", function () {
+                            getProperty(parentSelector, idSelector);
 
-            // .style("width", w + "px")
-            // .style("height", h + "px")
+                            d3.select("#my-svg")
+                              .selectAll("rect")
+                              .classed("resizing", false)
+                              .classed("moving", false);
+                          })
+                          .on("drag", () =>
+                            drag(parentSelector, idSelector, resizeSelector)
+                          )
+                      )
+                      // .classed("item", "select")
+                      .attr("id", "select" + counter);
+                    // .on("mousemove", mousemove)
 
-            .on("click", function () {
-              dragAction = "move";
-            });
-          elements = newG.append("g").attr("id", "elements-g");
+                    const field = d3
+                      .select("#my-svg")
+                      .select("#root-g")
+                      .select("#form-g")
+                      .select("#elements-g")
+                      .select(idSelector);
+                    const board = d3.select("#my-svg").select("#zoomCover");
+                    board.on("mousemove", mousemove);
 
-          // elements
-          //   .append("rect")
-          //   .attr("width", "50%")
-          //   .attr("height", "90%")
-
-          //   .attr("fill", "red")
-          //   .attr("id", "drawer");
-
-          // const field = newG
-          //   .append("rect")
-          //   .attr("id", "field")
-          //   .attr("x", 100)
-          //   .attr("y", 100)
-          //   .call(
-          //     d3.drag().on("drag", function (d) {
-          //       d3.select(this).attr("x", d3.event.x).attr("y", d3.event.y);
-          //     })
-          //   )
-          //   .attr("width", 100)
-          //   .attr("height", 100);
-
-          svg.call(zoom);
-        }}
-      >
-        Load Image
-      </button>
-      <button
-        onClick={async () => {
-          const { value: title } = await Swal.fire({
-            text: "Enter Field Title",
-            input: "text",
-            // inputLabel: "Title",
-            inputValue: null,
-            showCancelButton: true,
-            inputValidator: (value) => {
-              if (!value) {
-                return "You need to write something!";
+                    counter++;
+                  });
+                setZoom(false);
               }
-            },
-          });
-
-          if (title) {
-            Swal.fire(`Your IP address is ${ipAddress}`);
-          }
-        }}
-      >
-        {" "}
-        Counter
-      </button>
-      <svg height="90vh" width="90vw" id="my-svg"></svg>
+            } else {
+              d3.select("#my-svg").select("#zoomCover").classed("hide", true);
+              setZoom(true);
+            }
+          }}
+        >
+          {isZooming ? "Add New Field" : "Cancel"}
+        </button>
+      </div>
+      <div className="row">
+        <div className="col-md-4">
+          <table className="table">
+            <thead>
+              <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Title</th>
+                <th scope="col">X</th>
+                <th scope="col">Y</th>
+                <th scope="col">Width</th>
+                <th scope="col">Height</th>
+              </tr>
+            </thead>
+            <tbody>
+              {fields.map((x) => (
+                <tr key={x.title}>
+                  <td>{x.id}</td>
+                  <td>{x.title}</td>
+                  <td>{x.x}</td>
+                  <td>{x.y}</td>
+                  <td>{x.width}</td>
+                  <td>{x.height}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="col-md-8">
+          <svg height="90vh" width="90vw" id="my-svg"></svg>
+        </div>
+      </div>
     </>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
 import Swal from "sweetalert2";
+import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 // import Canvas from "./canvas";
 // import Canvas from "./canvas2";
