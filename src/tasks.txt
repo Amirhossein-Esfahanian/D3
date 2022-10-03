@@ -1,0 +1,23 @@
+--------hover svg highlight in table and vise versa.
+--------drawing border dashed not filled
+--------text only show on hover.
+--------add edit and delete to table
+--------smaller table without height and with and ...
+--------delete in use effect 
+--------duplicate title is not allowed
+-------on hover increase opacity
+--------resize handle all side
+--------selectors have function to return idSelector and...
+--------set text coordinate based on resized field
+--------hover table or field hover the related field
+--------need to fix text position in different scenarios
+
+menu not open before saving field
+
+shift + scroll zoom in and out
+ctrl + pan
+
+
+
+
+
